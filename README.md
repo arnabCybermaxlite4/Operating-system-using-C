@@ -61,16 +61,20 @@ bash
 cd CPU_Scheduling   # or Memory_Allocation
 
 2.Compile the C file using GCC:
-bash
+
+✅bash
 gcc fcfs.c -o fcfs
-powershell
+
+✅powershell
 gcc fcfs.c -o fcfs.exe
 
 3.Run the compiled program:
-bash
+
+✅bash
 ./fcfs     # On Linux/Mac
 fcfs.exe   # On Windows (or just `fcfs` if using PowerShell)
-powershell
+
+✅powershell
 .\fcfs.exe
 
 ## 🔗 Let's Connect
