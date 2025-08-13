@@ -1,0 +1,6 @@
+PID	AT	BT	CT	TAT = CT-AT	WT = TAT-BT
+
+P1	 3	2	  5	    2	         0
+P2	 4	3	  8	    4	         1
+P3	 5	4	 12	    7	         3
+P4	 6	5	 17	   11	         6
