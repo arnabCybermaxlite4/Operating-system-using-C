@@ -1,0 +1,90 @@
+#include <stdio.h>
+
+struct Process {
+    int pid;            // Process ID
+    int at;             // Arrival Time
+    int bt;             // Burst Time
+    int ct;             // Completion Time
+    int tat;            // Turnaround Time
+    int wt;             // Waiting Time
+    int completed;      // Flag to check if process is completed
+};
+
+int main() {
+    int n, time = 0, completedCount = 0;
+    float avgTAT = 0, avgWT = 0;
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    struct Process p[n];
+
+    // Input process details
+    for (int i = 0; i < n; i++) {
+        p[i].pid = i + 1; // Assign process ID
+        printf("Enter arrival time and burst time for Process P%d: ", p[i].pid);
+        scanf("%d %d", &p[i].at, &p[i].bt);
+        p[i].completed = 0; // Initially, process is not completed
+    }
+
+    // Scheduling loop until all processes are completed
+    while (completedCount < n) {
+        int idx = -1; // Index of selected process
+        int minBT = 9999;
+
+        // Find process with minimum burst time among arrived processes
+        for (int i = 0; i < n; i++) {
+            if (p[i].at <= time && p[i].completed == 0) {
+                if (p[i].bt < minBT) {
+                    minBT = p[i].bt;
+                    idx = i;
+                }
+                // If two processes have same burst time, choose the one with smaller arrival time
+                else if (p[i].bt == minBT && p[i].at < p[idx].at) {
+                    idx = i;
+                }
+            }
+        }
+
+        // If no process is available at current time, increase time
+        if (idx == -1) {
+            time++;
+        } else {
+            // Calculate Completion Time
+            time += p[idx].bt;
+            p[idx].ct = time;
+
+            // Calculate Turnaround Time = CT - AT
+            p[idx].tat = p[idx].ct - p[idx].at;
+
+            // Calculate Waiting Time = TAT - BT
+            p[idx].wt = p[idx].tat - p[idx].bt;
+
+            // Add to averages
+            avgTAT += p[idx].tat;
+            avgWT += p[idx].wt;
+
+            // Mark process as completed
+            p[idx].completed = 1;
+            completedCount++;
+        }
+    }
+
+    // Print table
+    printf("\n--- SJF (Non-preemptive) Scheduling ---\n");
+    printf("-------------------------------------------------------------\n");
+    printf("PID\tAT\tBT\tCT\tTAT\tWT\n");
+    printf("-------------------------------------------------------------\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\n", p[i].pid, p[i].at, p[i].bt,
+               p[i].ct, p[i].tat, p[i].wt);
+    }
+
+    // Print averages
+    printf("-------------------------------------------------------------\n");
+    printf("Average Turnaround Time = %.2f\n", avgTAT / n);
+    printf("Average Waiting Time = %.2f\n", avgWT / n);
+
+    return 0;
+}
