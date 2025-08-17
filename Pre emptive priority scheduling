@@ -1,0 +1,116 @@
+#include <stdio.h>
+
+// Structure to store process details
+struct Process {
+    int pid;         // Process ID
+    int at;          // Arrival Time
+    int bt;          // Burst Time
+    int remainingBT; // Remaining Burst Time (for preemption)
+    int p;           // Priority (lower number = higher priority)
+    int ct;          // Completion Time
+    int tat;         // Turnaround Time
+    int wt;          // Waiting Time
+    int done;        // Status flag (0 = not completed, 1 = completed)
+};
+
+int main() {
+    int n, completed = 0, currentTime = 0;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    struct Process proc[n];
+    int execOrder[100], execCount = 0; // To store execution order
+    float totalTAT = 0, totalWT = 0;
+
+    // ================================
+    // Step 1: Input process details
+    // ================================
+    for (int i = 0; i < n; i++) {
+        proc[i].pid = i + 1; // Assign process ID
+        printf("Enter AT, BT, Priority for p%d: ", i + 1);
+        scanf("%d %d %d", &proc[i].at, &proc[i].bt, &proc[i].p);
+
+        proc[i].remainingBT = proc[i].bt; // Initially remaining time = burst time
+        proc[i].done = 0;                 // Mark process as incomplete
+    }
+
+    // ==========================================
+    // Step 2: Preemptive Priority Scheduling Loop
+    // ==========================================
+    while (completed < n) {
+        int idx = -1;         // Index of selected process
+        int bestPriority = 9999; // Initially set very high priority value
+
+        // Step 2.1: Find process with highest priority among ready processes
+        for (int i = 0; i < n; i++) {
+            if (!proc[i].done && proc[i].at <= currentTime) {
+                // If process has higher priority (lower p value)
+                if (proc[i].p < bestPriority) {
+                    bestPriority = proc[i].p;
+                    idx = i;
+                }
+                // If same priority, choose the one which arrived earlier
+                else if (proc[i].p == bestPriority && proc[i].at < proc[idx].at) {
+                    idx = i;
+                }
+            }
+        }
+
+        // Step 2.2: Execute process for 1 unit of time
+        if (idx != -1) {
+            execOrder[execCount++] = proc[idx].pid; // Store execution order for Gantt Chart
+            proc[idx].remainingBT--; // Reduce remaining time
+            currentTime++;           // Move time forward
+
+            // Step 2.3: If process finishes, calculate times
+            if (proc[idx].remainingBT == 0) {
+                proc[idx].ct = currentTime;                   // Completion Time
+                proc[idx].tat = proc[idx].ct - proc[idx].at;  // Turnaround Time
+                proc[idx].wt = proc[idx].tat - proc[idx].bt;  // Waiting Time
+
+                totalTAT += proc[idx].tat; // Add to total TAT
+                totalWT += proc[idx].wt;   // Add to total WT
+
+                proc[idx].done = 1;        // Mark as completed
+                completed++;               // Increase completed count
+            }
+        }
+        else {
+            // Step 2.4: If no process is ready, move time forward
+            currentTime++;
+        }
+    }
+
+    // ======================================
+    // Step 3: Display process execution table
+    // ======================================
+    printf("\n| PID | AT | BT | P  | CT | TAT | WT |\n");
+    printf("| :-: |:-: |:-: |:-: |:-: |:-: |:-: |\n");
+    for (int i = 0; i < n; i++) {
+        printf("| p%-2d | %2d | %2d | %2d | %2d | %3d | %2d |\n",
+               proc[i].pid,
+               proc[i].at,
+               proc[i].bt,
+               proc[i].p,
+               proc[i].ct,
+               proc[i].tat,
+               proc[i].wt);
+    }
+
+    // ======================================
+    // Step 4: Display Average TAT & WT
+    // ======================================
+    printf("\nAverage Turnaround Time = %.2f", totalTAT / n);
+    printf("\nAverage Waiting Time = %.2f\n", totalWT / n);
+
+    // ======================================
+    // Step 5: Display Execution Order (Chart)
+    // ======================================
+    printf("\nExecution Order (Gantt Chart style):\n");
+    for (int i = 0; i < execCount; i++) {
+        printf("p%d ", execOrder[i]);
+    }
+    printf("\n");
+
+    return 0;
+}
