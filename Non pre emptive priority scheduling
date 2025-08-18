@@ -1,0 +1,92 @@
+#include <stdio.h>
+
+// Structure to represent each process
+struct Process {
+    int pid;    // Process ID
+    int at;     // Arrival Time
+    int bt;     // Burst Time
+    int p;      // Priority (lower number = higher priority)
+    int ct;     // Completion Time
+    int tat;    // Turnaround Time
+    int wt;     // Waiting Time
+    int done;   // Flag to check if process is completed
+};
+
+int main() {
+    int n, completed = 0, currentTime = 0; // n = number of processes, completed = count of completed processes, currentTime = current CPU time
+
+    // Taking number of processes from user
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    struct Process proc[n];  // Array of processes
+    int execOrder[n], execCount = 0; // Array to store execution order & count
+    float totalTAT = 0, totalWT = 0; // To store total Turnaround Time & Waiting Time
+
+    // Input process details
+    for (int i = 0; i < n; i++) {
+        proc[i].pid = i + 1; // Process ID starts from 1
+        printf("Enter AT, BT, Priority for p%d: ", i + 1);
+        scanf("%d %d %d", &proc[i].at, &proc[i].bt, &proc[i].p);
+        proc[i].done = 0; // Initially, all processes are not completed
+    }
+
+    // Scheduling loop until all processes are completed
+    while (completed < n) {
+        int idx = -1;           // Index of selected process
+        int bestPriority = 9999; // Large value to find minimum priority
+
+        // Selecting the process with the highest priority (lowest number)
+        for (int i = 0; i < n; i++) {
+            if (!proc[i].done && proc[i].at <= currentTime) { // Process should not be done and must have arrived
+                if (proc[i].p < bestPriority) { // Found better priority
+                    bestPriority = proc[i].p;
+                    idx = i;
+                } 
+                else if (proc[i].p == bestPriority && proc[i].at < proc[idx].at) { 
+                    // If priority is same, choose process with earlier arrival time
+                    idx = i;
+                }
+            }
+        }
+
+        // If a process is found to execute
+        if (idx != -1) {
+            execOrder[execCount++] = proc[idx].pid; // Store execution order
+            currentTime += proc[idx].bt;           // Increase current time by burst time
+            proc[idx].ct = currentTime;            // Set completion time
+            proc[idx].tat = proc[idx].ct - proc[idx].at; // Calculate Turnaround Time
+            proc[idx].wt = proc[idx].tat - proc[idx].bt; // Calculate Waiting Time
+            totalTAT += proc[idx].tat;             // Add to total TAT
+            totalWT += proc[idx].wt;               // Add to total WT
+            proc[idx].done = 1;                    // Mark as completed
+            completed++;                           // Increase completed process count
+        } 
+        else {
+            currentTime++; // If no process is available, increase time
+        }
+    }
+
+    // Printing result table
+    printf("\n| Order | Process | AT | BT | P | CT | TAT | WT |\n");
+    printf("| ----: | :------ |:-: |:-: |:-:|:-: |:-: |:-: |\n");
+
+    for (int i = 0; i < execCount; i++) {
+        int id = execOrder[i] - 1; // Process ID index in array
+        printf("| %5d | p%-6d | %2d | %2d | %2d | %2d | %3d | %2d |\n",
+               i + 1,            // Execution order
+               proc[id].pid,     // Process ID
+               proc[id].at,      // Arrival Time
+               proc[id].bt,      // Burst Time
+               proc[id].p,       // Priority
+               proc[id].ct,      // Completion Time
+               proc[id].tat,     // Turnaround Time
+               proc[id].wt);     // Waiting Time
+    }
+
+    // Printing average times
+    printf("\nAverage Turnaround Time = %.2f", totalTAT / n);
+    printf("\nAverage Waiting Time = %.2f\n", totalWT / n);
+
+    return 0;
+}
